@@ -7,17 +7,45 @@ export class News extends Component {
     console.log("Hello, I am a constructor from the News component");
     this.state = {
       articles: [],
-      loading: false
+      loading: false,
+      page: 1,
+      totalResults: 0
     };
   }
 
   async componentDidMount() {
     console.log("CDM");
-    let url = "https://newsapi.org/v2/top-headlines?country=in&apiKey=5779cb500dbf47e9a3dd3dfc195aab62";
+    let url = "https://newsapi.org/v2/top-headlines?country=in&category=business&apiKey=5779cb500dbf47e9a3dd3dfc195aab62&page=1&pageSize=20";
     this.setState({ loading: true });
     let data = await fetch(url);
     let parsedData = await data.json();
-    this.setState({ articles: parsedData.articles, loading: false });
+    this.setState({ articles: parsedData.articles, loading: false, totalResults: parsedData.totalResults });
+  }
+
+  handlePrevClick = async () => {
+    let url = `https://newsapi.org/v2/top-headlines?country=in&category=business&apiKey=5779cb500dbf47e9a3dd3dfc195aab62&page=${this.state.page - 1}&pageSize=20`;
+    this.setState({ loading: true });
+    let data = await fetch(url);
+    let parsedData = await data.json();
+    this.setState({
+      page: this.state.page - 1,
+      articles: parsedData.articles,
+      loading: false
+    });
+  }
+
+  handleNextClick = async () => {
+    if (this.state.page + 1 <= Math.ceil(this.state.totalResults / 20)) {
+      let url = `https://newsapi.org/v2/top-headlines?country=in&category=business&apiKey=5779cb500dbf47e9a3dd3dfc195aab62&page=${this.state.page + 1}&pageSize=20`;
+      this.setState({ loading: true });
+      let data = await fetch(url);
+      let parsedData = await data.json();
+      this.setState({
+        page: this.state.page + 1,
+        articles: parsedData.articles,
+        loading: false
+      });
+    }
   }
 
   render() {
@@ -33,6 +61,10 @@ export class News extends Component {
               </div>
             );
           })}
+        </div>
+        <div className='container d-flex justify-content-between'>
+          <button disabled={this.state.page <= 1} type='button' className='btn btn-dark' onClick={this.handlePrevClick}>&larr; Previous</button>
+          <button disabled={this.state.page + 1 > Math.ceil(this.state.totalResults / 20)} type='button' className='btn btn-dark' onClick={this.handleNextClick}>Next &rarr;</button>
         </div>
       </div>
     );
